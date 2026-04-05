@@ -142,7 +142,7 @@ struct MenuBarView: View {
                 Text("Inspired by")
                     .font(.caption2)
                     .foregroundStyle(.tertiary)
-                Link("LookAway", destination: URL(string: "https://lookaway.app")!)
+                Link("LookAway", destination: URL(string: "https://lookaway.com")!)
                     .font(.caption2)
             }
         }
