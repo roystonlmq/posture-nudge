@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { background: #1e1e1e; display: flex; gap: 40px; padding: 40px; align-items: flex-start; font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", sans-serif; }
+
+  /* ── MENU BAR POPOVER ── */
+  .popover {
+    width: 240px;
+    background: #2c2c2e;
+    border-radius: 12px;
+    padding: 14px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .popover-header {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    color: #f2f2f7;
+    font-size: 14px;
+    font-weight: 600;
+  }
+
+  .popover-header svg { color: #30d158; }
+
+  .pause-badge {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 12px;
+    color: #98989d;
+  }
+
+  .pause-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: #ff9f0a; }
+
+  .divider { height: 1px; background: #3a3a3c; }
+
+  .reminder-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .reminder-icon { width: 16px; color: #f2f2f7; font-size: 13px; }
+  .reminder-icon.off { color: #48484a; }
+
+  .reminder-text { flex: 1; }
+  .reminder-label { font-size: 13px; color: #f2f2f7; }
+  .reminder-label.off { color: #98989d; }
+  .reminder-sublabel { font-size: 10px; color: #636366; margin-top: 1px; }
+
+  .toggle {
+    width: 30px; height: 18px;
+    border-radius: 9px;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .toggle.on { background: #30d158; }
+  .toggle.off { background: #48484a; }
+  .toggle::after {
+    content: '';
+    position: absolute;
+    top: 2px;
+    width: 14px; height: 14px;
+    border-radius: 50%;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    transition: left 0.2s;
+  }
+  .toggle.on::after { left: 14px; }
+  .toggle.off::after { left: 2px; }
+
+  .popover-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .btn-text { font-size: 12px; color: #30d158; cursor: pointer; }
+  .btn-quit { font-size: 12px; color: #636366; }
+
+  .credits {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #48484a;
+    padding-top: 2px;
+  }
+  .credits a { color: #30d158; text-decoration: none; }
+
+  /* ── ICON OVERLAYS ── */
+  .overlay-icon {
+    width: 200px; height: 200px;
+    border-radius: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+  }
+
+  .gradient-green { background: linear-gradient(135deg, hsl(168,80%,45%), hsl(210,85%,55%)); }
+
+  .icon-circle {
+    width: 120px; height: 120px;
+    border-radius: 60px;
+    background: linear-gradient(135deg, hsl(168,80%,45%), hsl(210,85%,55%));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 4px rgba(20,30,20,0.8);
+    position: relative;
+  }
+
+  .icon-circle svg { color: rgba(10,30,10,0.85); }
+
+  /* ── BREAK OVERLAY ── */
+  .break-screen {
+    width: 480px; height: 300px;
+    background: rgba(0,0,0,0.78);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .break-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: url("data:image/svg+xml,%3Csvg width='400' height='300' viewBox='0 0 400 300' xmlns='http://www.w3.org/2000/svg'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%231a4a3a'/%3E%3Cstop offset='100%25' stop-color='%231a2a4a'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='400' height='300' fill='url(%23g)'/%3E%3C/svg%3E");
+    opacity: 0.35;
+    border-radius: 12px;
+  }
+
+  .break-icon-wrap {
+    width: 80px; height: 80px;
+    border-radius: 40px;
+    background: linear-gradient(135deg, hsl(168,80%,45%), hsl(210,85%,55%));
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 0 0 3px rgba(10,30,20,0.8);
+    position: relative; z-index: 1;
+  }
+
+  .break-text { position: relative; z-index: 1; text-align: center; }
+  .break-title { font-size: 22px; font-weight: 500; color: #fff; }
+  .break-timer { font-size: 52px; font-weight: 200; color: rgba(255,255,255,0.9); font-variant-numeric: tabular-nums; letter-spacing: -2px; }
+
+  .break-skip {
+    position: relative; z-index: 1;
+    font-size: 13px; color: rgba(255,255,255,0.6);
+    background: rgba(255,255,255,0.1);
+    border-radius: 20px;
+    padding: 8px 22px;
+    cursor: pointer;
+  }
+
+  /* ── SETTINGS ── */
+  .settings-window {
+    width: 420px;
+    background: #1c1c1e;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 12px 48px rgba(0,0,0,0.6);
+  }
+
+  .settings-titlebar {
+    height: 38px;
+    background: #2c2c2e;
+    display: flex;
+    align-items: center;
+    padding: 0 14px;
+    gap: 8px;
+    border-bottom: 1px solid #3a3a3c;
+  }
+
+  .traffic-light { width: 12px; height: 12px; border-radius: 6px; }
+  .tl-close { background: #ff5f57; }
+  .tl-min { background: #febc2e; }
+  .tl-max { background: #28c840; }
+  .settings-title { flex: 1; text-align: center; font-size: 13px; color: #98989d; font-weight: 500; }
+
+  .settings-body { padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+
+  .settings-section {
+    background: #2c2c2e;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .settings-section-title {
+    font-size: 12px;
+    font-weight: 600;
+    color: #98989d;
+    padding: 10px 14px 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .settings-row {
+    display: flex;
+    align-items: center;
+    padding: 8px 14px;
+    gap: 10px;
+    border-top: 1px solid #3a3a3c;
+  }
+
+  .settings-row:first-of-type { border-top: none; }
+
+  .settings-row-label { flex: 1; font-size: 13px; color: #f2f2f7; }
+  .settings-row-value { font-size: 13px; color: #636366; }
+
+  .settings-caption { font-size: 11px; color: #48484a; padding: 4px 14px 10px; }
+
+  .settings-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 10px;
+    color: #48484a;
+    padding: 0 16px 12px;
+  }
+  .settings-footer a { color: #30d158; text-decoration: none; }
+
+</style>
+</head>
+<body>
+
+<!-- 1: Popover -->
+<div id="shot-popover" class="popover">
+  <div class="popover-header">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a4 4 0 1 0 0 8 4 4 0 0 0 0-8zM6 20a6 6 0 1 1 12 0H6z"/></svg>
+    PostureNudge
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="reminder-row">
+    <div class="reminder-icon">🧍</div>
+    <div class="reminder-text">
+      <div class="reminder-label">Posture</div>
+      <div class="reminder-sublabel">Next: 24 min</div>
+    </div>
+    <div class="toggle on"></div>
+  </div>
+
+  <div class="reminder-row">
+    <div class="reminder-icon">👁</div>
+    <div class="reminder-text">
+      <div class="reminder-label">Blink</div>
+      <div class="reminder-sublabel">Next: 12 min</div>
+    </div>
+    <div class="toggle on"></div>
+  </div>
+
+  <div class="reminder-row">
+    <div class="reminder-icon off">🔭</div>
+    <div class="reminder-text">
+      <div class="reminder-label off">Eye Break</div>
+      <div class="reminder-sublabel">Off</div>
+    </div>
+    <div class="toggle off"></div>
+  </div>
+
+  <div class="divider"></div>
+
+  <div class="popover-footer">
+    <span class="btn-text">Settings...</span>
+    <span class="btn-quit">Quit</span>
+  </div>
+
+  <div class="credits">
+    <span>by <a href="#">@roystonlmq</a></span>
+    <span>Inspired by <a href="#">LookAway</a></span>
+  </div>
+</div>
+
+<!-- 2: Posture overlay -->
+<div id="shot-posture" style="background:#1a1a1a;border-radius:16px;padding:40px;display:flex;align-items:center;justify-content:center;">
+  <div class="icon-circle">
+    <svg width="48" height="48" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+      <!-- Head -->
+      <circle cx="50" cy="18" r="10" fill="currentColor" stroke="none"/>
+      <!-- Spine - upright -->
+      <line x1="50" y1="29" x2="50" y2="62" stroke-width="7"/>
+      <!-- Chair back -->
+      <line x1="68" y1="62" x2="68" y2="38" stroke-width="5.5"/>
+      <!-- Seat -->
+      <line x1="32" y1="62" x2="70" y2="62" stroke-width="5.5"/>
+      <!-- Arm -->
+      <path d="M47 45 Q36 56 38 62" stroke-width="5"/>
+      <!-- Upper leg -->
+      <line x1="50" y1="62" x2="30" y2="65" stroke-width="6.5"/>
+      <!-- Lower leg -->
+      <line x1="30" y1="65" x2="31" y2="84" stroke-width="6"/>
+      <!-- Chair legs -->
+      <line x1="34" y1="62" x2="32" y2="84" stroke-width="4.5"/>
+      <line x1="68" y1="62" x2="70" y2="84" stroke-width="4.5"/>
+    </svg>
+  </div>
+</div>
+
+<!-- 3: Eye break overlay -->
+<div id="shot-break" class="break-screen">
+  <div class="break-icon-wrap">
+    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="rgba(10,30,20,0.85)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <circle cx="6" cy="12" r="2.5"/>
+      <circle cx="18" cy="12" r="2.5"/>
+      <path d="M1 12s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4z"/>
+      <path d="M13 12s2-4 5-4 5 4 5 4-2 4-5 4-5-4-5-4z"/>
+    </svg>
+  </div>
+  <div class="break-text">
+    <div class="break-title">Look 20 feet away</div>
+    <div class="break-timer">0:18</div>
+  </div>
+  <div class="break-skip">Skip Break</div>
+</div>
+
+<!-- 4: Settings window -->
+<div id="shot-settings" class="settings-window">
+  <div class="settings-titlebar">
+    <div class="traffic-light tl-close"></div>
+    <div class="traffic-light tl-min"></div>
+    <div class="traffic-light tl-max"></div>
+    <div class="settings-title">PostureNudge Settings</div>
+  </div>
+  <div class="settings-body">
+
+    <div class="settings-section">
+      <div class="settings-section-title">Posture</div>
+      <div class="settings-row">
+        <div class="settings-row-label">Enable posture reminders</div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-label">Remind every</div>
+        <div class="settings-row-value">30 min</div>
+        <div style="font-size:11px;color:#48484a;">⌃</div>
+      </div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Meeting Detection</div>
+      <div class="settings-row">
+        <div class="settings-row-label">Pause during meetings</div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="settings-caption">Automatically pauses all reminders when your camera or microphone is in use.</div>
+    </div>
+
+    <div class="settings-section">
+      <div class="settings-section-title">Idle Detection</div>
+      <div class="settings-row">
+        <div class="settings-row-label">Pause when idle</div>
+        <div class="toggle on"></div>
+      </div>
+      <div class="settings-row">
+        <div class="settings-row-label">Idle after</div>
+        <div class="settings-row-value">1 min</div>
+      </div>
+    </div>
+
+  </div>
+  <div class="settings-footer">
+    <span>by <a href="#">@roystonlmq</a></span>
+    <span>Inspired by <a href="#">LookAway</a></span>
+  </div>
+</div>
+
+</body>
+</html>

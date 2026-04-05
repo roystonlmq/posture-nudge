@@ -15,7 +15,13 @@ A simple macOS menu bar app that reminds you to check your posture, blink, and t
 
 ## Screenshots
 
-Click the menu bar icon to see reminder status, toggle reminders, and access settings.
+<p align="center">
+  <img src="screenshots/screenshot-popover.png" width="220" alt="Menu bar popover" />
+  &nbsp;&nbsp;
+  <img src="screenshots/screenshot-settings.png" width="260" alt="Settings window" />
+  &nbsp;&nbsp;
+  <img src="screenshots/screenshot-break.png" width="260" alt="Eye break overlay" />
+</p>
 
 ## Requirements
 
