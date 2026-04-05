@@ -134,7 +134,9 @@ final class MeetingDetector: ObservableObject {
             CMIOObjectID(kCMIOObjectSystemObject), &prop, 0, nil, &dataSize
         ) == noErr, dataSize > 0 else { return false }
 
-        let count = Int(dataSize) / MemoryLayout<CMIODeviceID>.size
+        let stride = MemoryLayout<CMIODeviceID>.size
+        guard stride > 0, Int(dataSize) % stride == 0 else { return false }
+        let count = Int(dataSize) / stride
         var deviceIDs = [CMIODeviceID](repeating: 0, count: count)
         guard CMIOObjectGetPropertyData(
             CMIOObjectID(kCMIOObjectSystemObject), &prop, 0, nil, dataSize, &dataSize, &deviceIDs
@@ -169,7 +171,9 @@ final class MeetingDetector: ObservableObject {
             AudioObjectID(kAudioObjectSystemObject), &prop, 0, nil, &dataSize
         ) == noErr, dataSize > 0 else { return false }
 
-        let count = Int(dataSize) / MemoryLayout<AudioDeviceID>.size
+        let stride = MemoryLayout<AudioDeviceID>.size
+        guard stride > 0, Int(dataSize) % stride == 0 else { return false }
+        let count = Int(dataSize) / stride
         var deviceIDs = [AudioDeviceID](repeating: 0, count: count)
         guard AudioObjectGetPropertyData(
             AudioObjectID(kAudioObjectSystemObject), &prop, 0, nil, &dataSize, &deviceIDs
