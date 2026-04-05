@@ -1,0 +1,36 @@
+name: PostureNudge
+options:
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "6.0"
+    MACOSX_DEPLOYMENT_TARGET: "14.0"
+    CODE_SIGN_STYLE: Automatic
+    GENERATE_INFOPLIST_FILE: NO
+    CURRENT_PROJECT_VERSION: 1
+    MARKETING_VERSION: 1.0
+configs:
+  Debug: debug
+  Release: release
+targets:
+  PostureNudge:
+    type: application
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Sources/PostureNudge
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: PostureNudge
+        LSApplicationCategoryType: public.app-category.health-and-fitness
+        LSUIElement: true
+        NSSupportsAutomaticTermination: true
+        NSSupportsSuddenTermination: false
+    settings:
+      base:
+        PRODUCT_NAME: PostureNudge
+        PRODUCT_BUNDLE_IDENTIFIER: com.roystonlee.posture-nudge
+        INFOPLIST_FILE: App/Info.plist
+        ENABLE_HARDENED_RUNTIME: YES
+        SWIFT_EMIT_LOC_STRINGS: YES
