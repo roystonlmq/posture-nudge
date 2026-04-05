@@ -44,7 +44,10 @@ struct OverlayIconView: View {
     }
 }
 
-// MARK: - Posture: person in chair, slouched -> upright
+// MARK: - Posture: person on chair, slouched -> upright
+// Reference: side-view stick figure on a simple chair, facing left.
+// Slouched: head forward/down, back curved in a C-shape.
+// Upright: head up, back straight and vertical.
 
 private struct PostureIcon: View {
     @State private var progress: CGFloat = 0
@@ -52,7 +55,7 @@ private struct PostureIcon: View {
     var body: some View {
         PostureFigure(progress: progress)
             .fill(Color(white: 0.15))
-            .frame(width: 70, height: 70)
+            .frame(width: 75, height: 75)
             .onAppear {
                 withAnimation(.easeInOut(duration: 1.2).delay(0.3)) {
                     progress = 1.0
@@ -77,103 +80,107 @@ private struct PostureFigure: Shape, Animatable {
         var p = Path()
         let w = rect.width
         let h = rect.height
+        let lw: CGFloat = 0.045 * w  // line width for chair
 
-        // === CHAIR (constant) ===
+        // ──────────────────────────────
+        // CHAIR (constant, simple side-view)
+        // Person faces left, chair back is on the right
+        // ──────────────────────────────
 
-        // Chair back
-        p.addRoundedRect(
-            in: CGRect(x: 0.62 * w, y: 0.18 * h, width: 0.12 * w, height: 0.50 * h),
-            cornerSize: CGSize(width: 4, height: 4)
-        )
-        // Seat
-        p.addRoundedRect(
-            in: CGRect(x: 0.10 * w, y: 0.60 * h, width: 0.64 * w, height: 0.10 * h),
-            cornerSize: CGSize(width: 3, height: 3)
-        )
-        // Armrest
-        p.addRoundedRect(
-            in: CGRect(x: 0.06 * w, y: 0.42 * h, width: 0.10 * w, height: 0.22 * h),
-            cornerSize: CGSize(width: 3, height: 3)
-        )
-        // Front leg
-        p.addRoundedRect(
-            in: CGRect(x: 0.12 * w, y: 0.70 * h, width: 0.06 * w, height: 0.20 * h),
-            cornerSize: CGSize(width: 2, height: 2)
-        )
-        // Back leg
-        p.addRoundedRect(
-            in: CGRect(x: 0.66 * w, y: 0.70 * h, width: 0.06 * w, height: 0.20 * h),
-            cornerSize: CGSize(width: 2, height: 2)
-        )
+        // Seat - horizontal bar
+        var seat = Path()
+        seat.move(to: CGPoint(x: 0.20 * w, y: 0.64 * h))
+        seat.addLine(to: CGPoint(x: 0.68 * w, y: 0.64 * h))
+        p.addPath(seat.strokedPath(StrokeStyle(lineWidth: lw, lineCap: .round)))
 
-        // === PERSON ===
+        // Back rest - vertical bar on the right
+        var back = Path()
+        back.move(to: CGPoint(x: 0.68 * w, y: 0.64 * h))
+        back.addLine(to: CGPoint(x: 0.68 * w, y: 0.30 * h))
+        p.addPath(back.strokedPath(StrokeStyle(lineWidth: lw, lineCap: .round)))
 
-        // Head: moves from low-left (slouched) to high-center (upright)
-        let headR: CGFloat = 0.10 * w
-        let headX = lerp(0.22, 0.50) * w
-        let headY = lerp(0.30, 0.05) * h
+        // Front left leg
+        var frontLeg = Path()
+        frontLeg.move(to: CGPoint(x: 0.22 * w, y: 0.64 * h))
+        frontLeg.addLine(to: CGPoint(x: 0.18 * w, y: 0.88 * h))
+        p.addPath(frontLeg.strokedPath(StrokeStyle(lineWidth: lw, lineCap: .round)))
+
+        // Back right leg
+        var backLeg = Path()
+        backLeg.move(to: CGPoint(x: 0.66 * w, y: 0.64 * h))
+        backLeg.addLine(to: CGPoint(x: 0.70 * w, y: 0.88 * h))
+        p.addPath(backLeg.strokedPath(StrokeStyle(lineWidth: lw, lineCap: .round)))
+
+        // ──────────────────────────────
+        // PERSON (animated, facing left)
+        // ──────────────────────────────
+
+        let bodyLw: CGFloat = 0.07 * w
+
+        // Hip - stays on the seat
+        let hipX: CGFloat = 0.52 * w
+        let hipY: CGFloat = 0.60 * h
+
+        // Head
+        let headR: CGFloat = 0.09 * w
+        let headX = lerp(0.28, 0.52) * w
+        let headY = lerp(0.26, 0.08) * h
         p.addEllipse(in: CGRect(
             x: headX - headR, y: headY - headR,
             width: headR * 2, height: headR * 2
         ))
 
-        // Torso: curved line from neck to hip
-        let neckX = lerp(0.26, 0.50) * w
-        let neckY = headY + headR + 1
-        let hipX: CGFloat = 0.48 * w
-        let hipY: CGFloat = 0.58 * h
-        let spineCtrlX = lerp(0.24, 0.49) * w
-        let spineCtrlY = lerp(0.48, 0.38) * h
+        // Spine / back: from neck to hip
+        // Slouched: neck is forward-left, spine curves like a C
+        // Upright: neck is above hip, spine is nearly straight
+        let neckX = lerp(0.32, 0.52) * w
+        let neckY = headY + headR + 0.01 * h
 
-        var torso = Path()
-        torso.move(to: CGPoint(x: neckX, y: neckY))
-        torso.addQuadCurve(
+        // Control point for the spine curve
+        // Slouched: control point pulls the curve forward (left)
+        // Upright: control point stays close to the straight line
+        let spineCtrlX = lerp(0.22, 0.50) * w
+        let spineCtrlY = lerp(0.48, 0.36) * h
+
+        var spine = Path()
+        spine.move(to: CGPoint(x: neckX, y: neckY))
+        spine.addQuadCurve(
             to: CGPoint(x: hipX, y: hipY),
             control: CGPoint(x: spineCtrlX, y: spineCtrlY)
         )
-        p.addPath(torso.strokedPath(StrokeStyle(
-            lineWidth: 0.08 * w, lineCap: .round
-        )))
+        p.addPath(spine.strokedPath(StrokeStyle(lineWidth: bodyLw, lineCap: .round)))
 
-        // Arm: from shoulder area toward armrest or dangling
-        let shoulderX = lerp(0.24, 0.48) * w
-        let shoulderY = lerp(0.40, 0.24) * h
-        let handX = lerp(0.14, 0.16) * w
-        let handY = lerp(0.54, 0.48) * h
-        let elbowX = lerp(0.16, 0.26) * w
-        let elbowY = lerp(0.50, 0.40) * h
+        // Arms: from mid-spine area, resting on lap/knees
+        let shoulderX = lerp(0.28, 0.50) * w
+        let shoulderY = lerp(0.38, 0.26) * h
+        let handX = lerp(0.22, 0.32) * w
+        let handY = lerp(0.56, 0.52) * h
 
         var arm = Path()
         arm.move(to: CGPoint(x: shoulderX, y: shoulderY))
         arm.addQuadCurve(
             to: CGPoint(x: handX, y: handY),
-            control: CGPoint(x: elbowX, y: elbowY)
+            control: CGPoint(x: lerp(0.20, 0.34) * w, y: lerp(0.50, 0.42) * h)
         )
-        p.addPath(arm.strokedPath(StrokeStyle(
-            lineWidth: 0.05 * w, lineCap: .round
-        )))
+        p.addPath(arm.strokedPath(StrokeStyle(lineWidth: 0.05 * w, lineCap: .round)))
 
-        // Upper leg: hip to knee (on the seat)
-        let kneeX: CGFloat = 0.24 * w
-        let kneeY: CGFloat = 0.68 * h
+        // Upper leg: hip to knee (horizontal on seat)
+        let kneeX: CGFloat = 0.28 * w
+        let kneeY: CGFloat = 0.66 * h
 
         var upperLeg = Path()
         upperLeg.move(to: CGPoint(x: hipX, y: hipY))
         upperLeg.addLine(to: CGPoint(x: kneeX, y: kneeY))
-        p.addPath(upperLeg.strokedPath(StrokeStyle(
-            lineWidth: 0.07 * w, lineCap: .round
-        )))
+        p.addPath(upperLeg.strokedPath(StrokeStyle(lineWidth: bodyLw, lineCap: .round)))
 
-        // Lower leg: knee to foot
-        let footX: CGFloat = 0.22 * w
+        // Lower leg: knee down to floor
+        let footX: CGFloat = 0.26 * w
         let footY: CGFloat = 0.88 * h
 
         var lowerLeg = Path()
         lowerLeg.move(to: CGPoint(x: kneeX, y: kneeY))
         lowerLeg.addLine(to: CGPoint(x: footX, y: footY))
-        p.addPath(lowerLeg.strokedPath(StrokeStyle(
-            lineWidth: 0.06 * w, lineCap: .round
-        )))
+        p.addPath(lowerLeg.strokedPath(StrokeStyle(lineWidth: 0.06 * w, lineCap: .round)))
 
         return p
     }
