@@ -31,7 +31,7 @@ final class ReminderScheduler: ObservableObject {
         self.previousSettings = settingsStore.settings
 
         activityToken = ProcessInfo.processInfo.beginActivity(
-            options: [.userInitiatedAllowingIdleSystemSleep, .idleSystemSleepDisabled],
+            options: .userInitiatedAllowingIdleSystemSleep,
             reason: "PostureNudge reminder timers"
         )
 
