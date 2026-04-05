@@ -5,17 +5,19 @@ import AppKit
 struct PostureNudgeApp: App {
     private let settingsStore: SettingsStore
     private let notificationManager: NotificationManager
+    private let overlayManager: OverlayManager
     private let scheduler: ReminderScheduler
 
     init() {
         let store = SettingsStore()
         let notifications = NotificationManager()
-        let sched = ReminderScheduler(settingsStore: store, notificationManager: notifications)
+        let overlay = OverlayManager()
+        let sched = ReminderScheduler(settingsStore: store, overlayManager: overlay)
         self.settingsStore = store
         self.notificationManager = notifications
+        self.overlayManager = overlay
         self.scheduler = sched
 
-        // Disable automatic window tabbing
         NSWindow.allowsAutomaticWindowTabbing = false
     }
 
@@ -26,9 +28,6 @@ struct PostureNudgeApp: App {
                 scheduler: scheduler,
                 notificationManager: notificationManager
             )
-            .task {
-                await notificationManager.requestPermissionIfNeeded()
-            }
         } label: {
             Image(systemName: "figure.stand")
         }
@@ -39,9 +38,6 @@ struct PostureNudgeApp: App {
                 settingsStore: settingsStore,
                 notificationManager: notificationManager
             )
-            .onReceive(NotificationCenter.default.publisher(for: NSApplication.didBecomeActiveNotification)) { _ in
-                Task { await notificationManager.refreshPermissionStatus() }
-            }
         }
     }
 }

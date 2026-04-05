@@ -11,13 +11,13 @@ final class ReminderScheduler: ObservableObject {
     private var blinkTimer: Timer?
     private var eyeBreakTimer: Timer?
 
-    private let notificationManager: NotificationManager
+    private let overlayManager: OverlayManager
     private var settingsCancellable: AnyCancellable?
     private var debounceTask: Task<Void, Never>?
     nonisolated(unsafe) private var activityToken: NSObjectProtocol?
 
-    init(settingsStore: SettingsStore, notificationManager: NotificationManager) {
-        self.notificationManager = notificationManager
+    init(settingsStore: SettingsStore, overlayManager: OverlayManager) {
+        self.overlayManager = overlayManager
 
         // Prevent App Nap from coalescing timers
         activityToken = ProcessInfo.processInfo.beginActivity(
@@ -58,7 +58,7 @@ final class ReminderScheduler: ObservableObject {
             let interval = TimeInterval(settings.postureIntervalMinutes * 60)
             postureTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.notificationManager.send(.posture)
+                    self?.overlayManager.show(.posture)
                 }
             }
             postureNextFire = Date().addingTimeInterval(interval)
@@ -72,7 +72,7 @@ final class ReminderScheduler: ObservableObject {
             let interval = TimeInterval(settings.blinkIntervalMinutes * 60)
             blinkTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.notificationManager.send(.blink)
+                    self?.overlayManager.show(.blink)
                 }
             }
             blinkNextFire = Date().addingTimeInterval(interval)
@@ -86,7 +86,7 @@ final class ReminderScheduler: ObservableObject {
             let interval = TimeInterval(settings.eyeBreakIntervalMinutes * 60)
             eyeBreakTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.notificationManager.send(.eyeBreak)
+                    self?.overlayManager.show(.eyeBreak)
                 }
             }
             eyeBreakNextFire = Date().addingTimeInterval(interval)
