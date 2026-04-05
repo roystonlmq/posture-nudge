@@ -34,7 +34,7 @@ struct SettingsView: View {
             Section("Posture") {
                 Toggle("Enable posture reminders", isOn: $settingsStore.settings.postureEnabled)
                 if settingsStore.settings.postureEnabled {
-                    IntervalStepper(
+                    IntervalField(
                         label: "Remind every",
                         value: $settingsStore.settings.postureIntervalMinutes
                     )
@@ -44,7 +44,7 @@ struct SettingsView: View {
             Section("Blink") {
                 Toggle("Enable blink reminders", isOn: $settingsStore.settings.blinkEnabled)
                 if settingsStore.settings.blinkEnabled {
-                    IntervalStepper(
+                    IntervalField(
                         label: "Remind every",
                         value: $settingsStore.settings.blinkIntervalMinutes
                     )
@@ -54,7 +54,7 @@ struct SettingsView: View {
             Section("20-20-20 Eye Break") {
                 Toggle("Enable eye break reminders", isOn: $settingsStore.settings.eyeBreakEnabled)
                 if settingsStore.settings.eyeBreakEnabled {
-                    IntervalStepper(
+                    IntervalField(
                         label: "Remind every",
                         value: $settingsStore.settings.eyeBreakIntervalMinutes
                     )
@@ -67,7 +67,7 @@ struct SettingsView: View {
     }
 }
 
-private struct IntervalStepper: View {
+private struct IntervalField: View {
     let label: String
     @Binding var value: Int
 
@@ -75,12 +75,17 @@ private struct IntervalStepper: View {
         HStack {
             Text(label)
             Spacer()
-            Stepper(
-                "\(value) min",
-                value: $value,
-                in: 1...120,
-                step: 5
-            )
+            TextField("", value: $value, format: .number)
+                .frame(width: 50)
+                .multilineTextAlignment(.trailing)
+                .onSubmit { clampValue() }
+                .onChange(of: value) { clampValue() }
+            Text("min")
+                .foregroundStyle(.secondary)
         }
+    }
+
+    private func clampValue() {
+        value = max(1, min(120, value))
     }
 }

@@ -59,6 +59,10 @@ struct MenuBarView: View {
             HStack {
                 Button("Settings...") {
                     openSettings()
+                    // Bring settings window to front
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+                        NSApplication.shared.activate(ignoringOtherApps: true)
+                    }
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
