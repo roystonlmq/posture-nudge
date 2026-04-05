@@ -92,7 +92,7 @@ struct SettingsView: View {
                 Spacer()
                 Text("Inspired by")
                     .foregroundStyle(.tertiary)
-                Link("LookAway", destination: URL(string: "https://github.com/GaetanOff/LookAway")!)
+                Link("LookAway", destination: URL(string: "https://lookaway.app")!)
             }
             .font(.caption)
             .padding(.horizontal, 16)
