@@ -90,15 +90,18 @@ struct SettingsView: View {
 private struct IntervalField: View {
     let label: String
     @Binding var value: Int
+    @State private var text: String = ""
 
     var body: some View {
         HStack {
             Text(label)
             Spacer()
-            TextField("", value: $value, format: .number)
+            TextField("", text: $text)
                 .frame(width: 50)
                 .multilineTextAlignment(.trailing)
-                .onSubmit { clampValue() }
+                .onAppear { text = "\(value)" }
+                .onChange(of: text) { commitText() }
+                .onChange(of: value) { text = "\(value)" }
             Text("min")
                 .foregroundStyle(.secondary)
             Stepper("", value: $value, in: 1...120, step: 1)
@@ -106,7 +109,10 @@ private struct IntervalField: View {
         }
     }
 
-    private func clampValue() {
-        value = max(1, min(120, value))
+    private func commitText() {
+        guard let parsed = Int(text), parsed >= 1, parsed <= 120 else { return }
+        if parsed != value {
+            value = parsed
+        }
     }
 }
