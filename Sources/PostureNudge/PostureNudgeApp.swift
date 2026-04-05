@@ -26,7 +26,8 @@ struct PostureNudgeApp: App {
             MenuBarView(
                 settingsStore: settingsStore,
                 scheduler: scheduler,
-                notificationManager: notificationManager
+                notificationManager: notificationManager,
+                overlayManager: overlayManager
             )
         } label: {
             Image(systemName: "figure.stand")

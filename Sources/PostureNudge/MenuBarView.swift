@@ -4,6 +4,7 @@ struct MenuBarView: View {
     @ObservedObject var settingsStore: SettingsStore
     @ObservedObject var scheduler: ReminderScheduler
     @ObservedObject var notificationManager: NotificationManager
+    var overlayManager: OverlayManager
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -53,6 +54,23 @@ struct MenuBarView: View {
                 enabled: $settingsStore.settings.eyeBreakEnabled,
                 nextFire: scheduler.eyeBreakNextFire
             )
+
+            #if DEBUG
+            Divider()
+
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Debug")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                HStack(spacing: 8) {
+                    Button("Posture") { overlayManager.show(.posture) }
+                    Button("Blink") { overlayManager.show(.blink) }
+                    Button("Eye Break") { overlayManager.show(.eyeBreak) }
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.mini)
+            }
+            #endif
 
             Divider()
 
