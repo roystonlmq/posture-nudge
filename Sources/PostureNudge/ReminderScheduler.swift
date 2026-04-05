@@ -93,6 +93,9 @@ final class ReminderScheduler: ObservableObject {
         postureTimer?.invalidate(); postureTimer = nil
         blinkTimer?.invalidate(); blinkTimer = nil
         eyeBreakTimer?.invalidate(); eyeBreakTimer = nil
+        postureNextFire = nil
+        blinkNextFire = nil
+        eyeBreakNextFire = nil
     }
 
     private func resumeTimers() {
