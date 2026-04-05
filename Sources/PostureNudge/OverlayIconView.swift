@@ -9,8 +9,8 @@ struct OverlayIconView: View {
     private var gradient: LinearGradient {
         LinearGradient(
             colors: [
-                Color(hue: 0.95, saturation: 0.55, brightness: 1.0),
-                Color(hue: 0.06, saturation: 0.65, brightness: 1.0)
+                Color(hue: 0.47, saturation: 0.80, brightness: 0.75),
+                Color(hue: 0.58, saturation: 0.85, brightness: 0.85)
             ],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
