@@ -36,7 +36,7 @@ final class ReminderScheduler: ObservableObject {
         )
 
         configureAllTimers(settings: settingsStore.settings)
-        updateMeetingDetection(enabled: settingsStore.settings.meetingDetectionEnabled)
+        updateDetection(settings: settingsStore.settings)
 
         settingsCancellable = settingsStore.$settings
             .dropFirst()
@@ -45,14 +45,14 @@ final class ReminderScheduler: ObservableObject {
                 let old = self.currentSettings
                 self.previousSettings = old
                 self.currentSettings = newSettings
-                self.updateMeetingDetection(enabled: newSettings.meetingDetectionEnabled)
+                self.updateDetection(settings: newSettings)
                 self.debounceReconfigure(old: old, new: newSettings)
             }
 
-        meetingCancellable = meetingDetector.$isMeetingActive
+        meetingCancellable = meetingDetector.$shouldPause
             .removeDuplicates()
-            .sink { [weak self] inMeeting in
-                if inMeeting {
+            .sink { [weak self] shouldPause in
+                if shouldPause {
                     self?.pauseTimers()
                 } else {
                     self?.resumeTimers()
@@ -68,8 +68,13 @@ final class ReminderScheduler: ObservableObject {
 
     // MARK: - Meeting detection
 
-    private func updateMeetingDetection(enabled: Bool) {
-        if enabled {
+    private func updateDetection(settings: NudgeSettings) {
+        meetingDetector.meetingDetectionEnabled = settings.meetingDetectionEnabled
+        meetingDetector.idleDetectionEnabled = settings.idleDetectionEnabled
+        meetingDetector.idleThresholdSeconds = TimeInterval(settings.idleThresholdMinutes * 60)
+
+        let needsPolling = settings.meetingDetectionEnabled || settings.idleDetectionEnabled
+        if needsPolling {
             meetingDetector.start()
         } else {
             meetingDetector.stop()

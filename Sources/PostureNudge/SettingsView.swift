@@ -58,6 +58,19 @@ struct SettingsView: View {
                     .foregroundStyle(.secondary)
             }
 
+            Section("Idle Detection") {
+                Toggle("Pause when idle", isOn: $settingsStore.settings.idleDetectionEnabled)
+                if settingsStore.settings.idleDetectionEnabled {
+                    IntervalField(
+                        label: "Idle after",
+                        value: $settingsStore.settings.idleThresholdMinutes
+                    )
+                }
+                Text("Pauses reminders when you step away from your computer.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("20-20-20 Eye Break") {
                 Toggle("Enable eye break reminders", isOn: $settingsStore.settings.eyeBreakEnabled)
                 if settingsStore.settings.eyeBreakEnabled {

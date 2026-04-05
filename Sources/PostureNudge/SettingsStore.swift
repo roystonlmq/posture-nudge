@@ -8,6 +8,8 @@ struct NudgeSettings: Codable, Equatable {
     var eyeBreakEnabled: Bool = true
     var eyeBreakIntervalMinutes: Int = 20
     var meetingDetectionEnabled: Bool = true
+    var idleDetectionEnabled: Bool = true
+    var idleThresholdMinutes: Int = 1
 
     static let `default` = NudgeSettings()
 }

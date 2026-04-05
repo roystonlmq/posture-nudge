@@ -1,24 +1,34 @@
 import Foundation
 import CoreMediaIO
 import CoreAudio
+import CoreGraphics
 
 @MainActor
 final class MeetingDetector: ObservableObject {
     @Published private(set) var isMeetingActive: Bool = false
+    @Published private(set) var isUserIdle: Bool = false
     @Published private(set) var cameraInUse: Bool = false
     @Published private(set) var microphoneInUse: Bool = false
 
-    private var pollTimer: Timer?
-    private var activeCount: Int = 0
-    private var inactiveCount: Int = 0
+    /// Either meeting or idle - the scheduler observes this
+    @Published private(set) var shouldPause: Bool = false
 
-    private let enterThreshold: Int = 5   // 5s of cam/mic active before pausing
-    private let exitThreshold: Int = 10   // 10s of cam/mic inactive before resuming
+    private var pollTimer: Timer?
+
+    // Meeting hysteresis
+    private var meetingActiveCount: Int = 0
+    private var meetingInactiveCount: Int = 0
+    private let meetingEnterThreshold: Int = 5
+    private let meetingExitThreshold: Int = 10
+
+    // Config (set by ReminderScheduler from settings)
+    var idleThresholdSeconds: TimeInterval = 60
+    var meetingDetectionEnabled: Bool = true
+    var idleDetectionEnabled: Bool = true
 
     func start() {
         guard pollTimer == nil else { return }
 
-        // Allow CMIO to see virtual/extension cameras (Zoom, OBS, etc.)
         Self.enableScreenCaptureDevices()
 
         pollTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { [weak self] _ in
@@ -32,31 +42,70 @@ final class MeetingDetector: ObservableObject {
         pollTimer?.invalidate()
         pollTimer = nil
         isMeetingActive = false
+        isUserIdle = false
+        shouldPause = false
         cameraInUse = false
         microphoneInUse = false
-        activeCount = 0
-        inactiveCount = 0
+        meetingActiveCount = 0
+        meetingInactiveCount = 0
     }
 
     private func poll() {
+        if meetingDetectionEnabled {
+            pollMeeting()
+        } else if isMeetingActive {
+            isMeetingActive = false
+            meetingActiveCount = 0
+            meetingInactiveCount = 0
+        }
+
+        if idleDetectionEnabled {
+            pollIdle()
+        } else if isUserIdle {
+            isUserIdle = false
+        }
+
+        shouldPause = isMeetingActive || isUserIdle
+    }
+
+    // MARK: - Meeting detection
+
+    private func pollMeeting() {
         let cam = Self.isAnyCameraRunning()
         let mic = Self.isAnyMicrophoneRunning()
         cameraInUse = cam
         microphoneInUse = mic
 
         if cam || mic {
-            activeCount += 1
-            inactiveCount = 0
-            if !isMeetingActive && activeCount >= enterThreshold {
+            meetingActiveCount += 1
+            meetingInactiveCount = 0
+            if !isMeetingActive && meetingActiveCount >= meetingEnterThreshold {
                 isMeetingActive = true
             }
         } else {
-            inactiveCount += 1
-            activeCount = 0
-            if isMeetingActive && inactiveCount >= exitThreshold {
+            meetingInactiveCount += 1
+            meetingActiveCount = 0
+            if isMeetingActive && meetingInactiveCount >= meetingExitThreshold {
                 isMeetingActive = false
             }
         }
+    }
+
+    // MARK: - Idle detection
+
+    private func pollIdle() {
+        let idleTime = CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: .mouseMoved
+        )
+        let idleKb = CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: .keyDown
+        )
+        let idleClick = CGEventSource.secondsSinceLastEventType(
+            .combinedSessionState, eventType: .leftMouseDown
+        )
+        // User is idle if no keyboard, mouse movement, or clicks
+        let minIdle = min(idleTime, idleKb, idleClick)
+        isUserIdle = minIdle >= idleThresholdSeconds
     }
 
     // MARK: - CoreMediaIO: camera detection
