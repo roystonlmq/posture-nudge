@@ -38,7 +38,7 @@ struct PostureNudgeApp: App {
                 meetingDetector: meetingDetector
             )
         } label: {
-            Image(systemName: "figure.stand")
+            MenuBarLabel(scheduler: scheduler, meetingDetector: meetingDetector)
         }
         .menuBarExtraStyle(.window)
 
