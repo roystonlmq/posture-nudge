@@ -30,14 +30,7 @@ struct MenuBarLabel: View {
     }
 
     private var nextReminderLabel: String? {
-        // Find the soonest next fire across all reminders
-        let fires = [
-            scheduler.postureNextFire,
-            scheduler.blinkNextFire,
-            scheduler.eyeBreakNextFire
-        ].compactMap { $0 }
-
-        guard let soonest = fires.min() else { return nil }
+        guard let soonest = scheduler.eyeBreakNextFire else { return nil }
 
         let remaining = Int(max(0, soonest.timeIntervalSince(now)))
         let minutes = remaining / 60
