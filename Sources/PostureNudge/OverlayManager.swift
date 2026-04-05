@@ -33,7 +33,9 @@ final class OverlayManager: OverlayShowing {
         queue.removeFirst()
         isShowing = true
 
-        NSSound(named: "Tink")?.play()
+        // Glass is more noticeable for the full-screen break overlay
+        let sound = type == .eyeBreak ? "Glass" : "Tink"
+        NSSound(named: sound)?.play()
 
         if type == .eyeBreak {
             showBreakOverlay()
