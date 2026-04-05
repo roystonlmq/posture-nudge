@@ -34,3 +34,15 @@ targets:
         INFOPLIST_FILE: App/Info.plist
         ENABLE_HARDENED_RUNTIME: YES
         SWIFT_EMIT_LOC_STRINGS: YES
+  PostureNudgeTests:
+    type: bundle.unit-test
+    platform: macOS
+    deploymentTarget: "14.0"
+    sources:
+      - path: Tests/PostureNudgeTests
+    dependencies:
+      - target: PostureNudge
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.roystonlee.posture-nudge.tests
+        GENERATE_INFOPLIST_FILE: YES

@@ -17,10 +17,12 @@ final class SettingsStore: ObservableObject {
         didSet { save() }
     }
 
+    private let defaults: UserDefaults
     private let key = "nudge.settings"
 
-    init() {
-        if let data = UserDefaults.standard.data(forKey: "nudge.settings"),
+    init(defaults: UserDefaults = .standard) {
+        self.defaults = defaults
+        if let data = defaults.data(forKey: "nudge.settings"),
            let decoded = try? JSONDecoder().decode(NudgeSettings.self, from: data) {
             settings = decoded
         } else {
@@ -30,7 +32,7 @@ final class SettingsStore: ObservableObject {
 
     private func save() {
         if let data = try? JSONEncoder().encode(settings) {
-            UserDefaults.standard.set(data, forKey: key)
+            defaults.set(data, forKey: key)
         }
     }
 }

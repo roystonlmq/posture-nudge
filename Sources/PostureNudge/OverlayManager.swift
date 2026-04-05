@@ -2,7 +2,13 @@ import AppKit
 import SwiftUI
 
 @MainActor
-final class OverlayManager {
+protocol OverlayShowing {
+    func show(_ type: ReminderType)
+    func dismiss()
+}
+
+@MainActor
+final class OverlayManager: OverlayShowing {
     private var windows: [NSWindow] = []
     private var dismissTask: Task<Void, Never>?
     private var countdownTask: Task<Void, Never>?
@@ -71,13 +77,6 @@ final class OverlayManager {
         self.breakCountdown = countdown
 
         for screen in NSScreen.screens {
-            let view = BreakOverlayView(
-                remainingSeconds: countdown.remaining,
-                onSkip: { [weak self] in
-                    self?.dismiss()
-                }
-            )
-            // Use ObservableObject to drive updates
             let hostView = BreakOverlayHostView(countdown: countdown, onSkip: { [weak self] in
                 self?.dismiss()
             })

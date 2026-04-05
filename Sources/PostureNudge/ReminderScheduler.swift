@@ -11,12 +11,12 @@ final class ReminderScheduler: ObservableObject {
     private var blinkTimer: Timer?
     private var eyeBreakTimer: Timer?
 
-    private let overlayManager: OverlayManager
+    private let overlayManager: any OverlayShowing
     private var settingsCancellable: AnyCancellable?
     private var debounceTask: Task<Void, Never>?
     nonisolated(unsafe) private var activityToken: NSObjectProtocol?
 
-    init(settingsStore: SettingsStore, overlayManager: OverlayManager) {
+    init(settingsStore: SettingsStore, overlayManager: any OverlayShowing) {
         self.overlayManager = overlayManager
 
         // Prevent App Nap from coalescing timers
