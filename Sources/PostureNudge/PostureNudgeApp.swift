@@ -6,16 +6,23 @@ struct PostureNudgeApp: App {
     private let settingsStore: SettingsStore
     private let notificationManager: NotificationManager
     private let overlayManager: OverlayManager
+    private let meetingDetector: MeetingDetector
     private let scheduler: ReminderScheduler
 
     init() {
         let store = SettingsStore()
         let notifications = NotificationManager()
         let overlay = OverlayManager()
-        let sched = ReminderScheduler(settingsStore: store, overlayManager: overlay)
+        let detector = MeetingDetector()
+        let sched = ReminderScheduler(
+            settingsStore: store,
+            overlayManager: overlay,
+            meetingDetector: detector
+        )
         self.settingsStore = store
         self.notificationManager = notifications
         self.overlayManager = overlay
+        self.meetingDetector = detector
         self.scheduler = sched
 
         NSWindow.allowsAutomaticWindowTabbing = false
@@ -27,7 +34,8 @@ struct PostureNudgeApp: App {
                 settingsStore: settingsStore,
                 scheduler: scheduler,
                 notificationManager: notificationManager,
-                overlayManager: overlayManager
+                overlayManager: overlayManager,
+                meetingDetector: meetingDetector
             )
         } label: {
             Image(systemName: "figure.stand")

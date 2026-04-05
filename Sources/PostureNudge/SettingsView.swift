@@ -51,6 +51,13 @@ struct SettingsView: View {
                 }
             }
 
+            Section("Meeting Detection") {
+                Toggle("Pause during meetings", isOn: $settingsStore.settings.meetingDetectionEnabled)
+                Text("Automatically pauses all reminders when your camera or microphone is in use.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             Section("20-20-20 Eye Break") {
                 Toggle("Enable eye break reminders", isOn: $settingsStore.settings.eyeBreakEnabled)
                 if settingsStore.settings.eyeBreakEnabled {

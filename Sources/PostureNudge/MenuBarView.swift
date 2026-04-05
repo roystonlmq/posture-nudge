@@ -5,6 +5,7 @@ struct MenuBarView: View {
     @ObservedObject var scheduler: ReminderScheduler
     @ObservedObject var notificationManager: NotificationManager
     var overlayManager: OverlayManager
+    @ObservedObject var meetingDetector: MeetingDetector
     @Environment(\.openSettings) private var openSettings
 
     var body: some View {
@@ -16,6 +17,16 @@ struct MenuBarView: View {
                 Text("PostureNudge")
                     .font(.headline)
                 Spacer()
+            }
+
+            if scheduler.isPausedForMeeting {
+                HStack(spacing: 6) {
+                    Image(systemName: "video.fill")
+                        .foregroundStyle(.orange)
+                    Text("Paused during meeting")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
             }
 
             if notificationManager.permissionDenied {
@@ -69,6 +80,19 @@ struct MenuBarView: View {
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.mini)
+                HStack(spacing: 4) {
+                    Circle()
+                        .fill(meetingDetector.cameraInUse ? .green : .gray.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                    Text("Cam")
+                        .font(.caption2)
+                    Circle()
+                        .fill(meetingDetector.microphoneInUse ? .green : .gray.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                    Text("Mic")
+                        .font(.caption2)
+                }
+                .foregroundStyle(.secondary)
             }
             #endif
 
@@ -77,7 +101,6 @@ struct MenuBarView: View {
             HStack {
                 Button("Settings...") {
                     openSettings()
-                    // Bring settings window to front
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                         NSApplication.shared.activate(ignoringOtherApps: true)
                     }
