@@ -84,6 +84,20 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 420)
         .padding(.vertical, 8)
+        .safeAreaInset(edge: .bottom) {
+            HStack(spacing: 4) {
+                Text("by")
+                    .foregroundStyle(.tertiary)
+                Link("@roystonlmq", destination: URL(string: "https://github.com/roystonlmq/posture-nudge")!)
+                Spacer()
+                Text("Inspired by")
+                    .foregroundStyle(.tertiary)
+                Link("LookAway", destination: URL(string: "https://github.com/GaetanOff/LookAway")!)
+            }
+            .font(.caption)
+            .padding(.horizontal, 16)
+            .padding(.bottom, 10)
+        }
     }
 }
 

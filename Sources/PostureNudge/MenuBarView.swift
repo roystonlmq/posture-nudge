@@ -129,6 +129,22 @@ struct MenuBarView: View {
                 .buttonStyle(.plain)
                 .foregroundStyle(.secondary)
             }
+
+            Divider()
+
+            HStack(spacing: 4) {
+                Text("by")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                Link("@roystonlmq", destination: URL(string: "https://github.com/roystonlmq/posture-nudge")!)
+                    .font(.caption2)
+                Spacer()
+                Text("Inspired by")
+                    .font(.caption2)
+                    .foregroundStyle(.tertiary)
+                Link("LookAway", destination: URL(string: "https://github.com/GaetanOff/LookAway")!)
+                    .font(.caption2)
+            }
         }
         .padding(14)
         .frame(width: 240)
