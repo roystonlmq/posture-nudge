@@ -79,9 +79,10 @@ private struct IntervalField: View {
                 .frame(width: 50)
                 .multilineTextAlignment(.trailing)
                 .onSubmit { clampValue() }
-                .onChange(of: value) { clampValue() }
             Text("min")
                 .foregroundStyle(.secondary)
+            Stepper("", value: $value, in: 1...120, step: 1)
+                .labelsHidden()
         }
     }
 

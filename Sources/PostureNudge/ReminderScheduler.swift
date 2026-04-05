@@ -50,52 +50,52 @@ final class ReminderScheduler: ObservableObject {
     }
 
     private func configureTimers(settings: NudgeSettings) {
-        // Posture
-        postureTimer?.invalidate()
-        postureTimer = nil
-        postureNextFire = nil
-        if settings.postureEnabled {
-            let interval = TimeInterval(settings.postureIntervalMinutes * 60)
-            postureNextFire = Date().addingTimeInterval(interval)
-            postureTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.overlayManager.show(.posture)
-                    self.postureNextFire = Date().addingTimeInterval(interval)
-                }
+        configureTimer(
+            timer: &postureTimer, nextFire: &postureNextFire,
+            enabled: settings.postureEnabled, intervalMinutes: settings.postureIntervalMinutes,
+            type: .posture
+        )
+        configureTimer(
+            timer: &blinkTimer, nextFire: &blinkNextFire,
+            enabled: settings.blinkEnabled, intervalMinutes: settings.blinkIntervalMinutes,
+            type: .blink
+        )
+        configureTimer(
+            timer: &eyeBreakTimer, nextFire: &eyeBreakNextFire,
+            enabled: settings.eyeBreakEnabled, intervalMinutes: settings.eyeBreakIntervalMinutes,
+            type: .eyeBreak
+        )
+    }
+
+    private func configureTimer(
+        timer: inout Timer?, nextFire: inout Date?,
+        enabled: Bool, intervalMinutes: Int, type: ReminderType
+    ) {
+        timer?.invalidate()
+        timer = nil
+        nextFire = nil
+        guard enabled else { return }
+
+        let interval = TimeInterval(intervalMinutes * 60)
+        nextFire = Date().addingTimeInterval(interval)
+
+        timer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                guard let self else { return }
+                // Set next fire BEFORE showing overlay so the menu bar
+                // never briefly counts up from a past date
+                self.setNextFire(for: type, interval: interval)
+                self.overlayManager.show(type)
             }
         }
+    }
 
-        // Blink
-        blinkTimer?.invalidate()
-        blinkTimer = nil
-        blinkNextFire = nil
-        if settings.blinkEnabled {
-            let interval = TimeInterval(settings.blinkIntervalMinutes * 60)
-            blinkNextFire = Date().addingTimeInterval(interval)
-            blinkTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.overlayManager.show(.blink)
-                    self.blinkNextFire = Date().addingTimeInterval(interval)
-                }
-            }
-        }
-
-        // Eye break
-        eyeBreakTimer?.invalidate()
-        eyeBreakTimer = nil
-        eyeBreakNextFire = nil
-        if settings.eyeBreakEnabled {
-            let interval = TimeInterval(settings.eyeBreakIntervalMinutes * 60)
-            eyeBreakNextFire = Date().addingTimeInterval(interval)
-            eyeBreakTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
-                Task { @MainActor [weak self] in
-                    guard let self else { return }
-                    self.overlayManager.show(.eyeBreak)
-                    self.eyeBreakNextFire = Date().addingTimeInterval(interval)
-                }
-            }
+    private func setNextFire(for type: ReminderType, interval: TimeInterval) {
+        let next = Date().addingTimeInterval(interval)
+        switch type {
+        case .posture:  postureNextFire = next
+        case .blink:    blinkNextFire = next
+        case .eyeBreak: eyeBreakNextFire = next
         }
     }
 }
