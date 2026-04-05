@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PostureNudge Icon Preview</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: #0f0f0f;
+    font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+    color: #fff;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 48px 24px;
+    gap: 48px;
+  }
+  h1 { font-size: 13px; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; color: #666; }
+  .sizes { display: flex; align-items: flex-end; gap: 32px; flex-wrap: wrap; justify-content: center; }
+  .size-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .size-label { font-size: 11px; color: #555; letter-spacing: 0.05em; }
+  .small-bg { background: repeating-conic-gradient(#222 0% 25%, #1a1a1a 0% 50%) 0 0 / 8px 8px; padding: 6px; border-radius: 4px; }
+  button { background: linear-gradient(135deg, #ff6b9d, #ff8c6b); border: none; border-radius: 10px; color: #fff; cursor: pointer; font-size: 14px; font-weight: 600; padding: 12px 32px; letter-spacing: 0.02em; transition: opacity 0.15s; }
+  button:hover { opacity: 0.85; }
+</style>
+</head>
+<body>
+
+<h1>PostureNudge — Icon Preview</h1>
+<canvas id="exportCanvas" width="1024" height="1024" style="display:none"></canvas>
+
+<!-- Icon defined once as inline SVG, reused via JavaScript -->
+<svg id="masterIcon" viewBox="0 0 1024 1024" width="320" height="320" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="hsl(168, 80%, 45%)"/>
+      <stop offset="100%" stop-color="hsl(210, 85%, 55%)"/>
+    </linearGradient>
+    <radialGradient id="hl" cx="35%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- macOS squircle background -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#hl)"/>
+  <!-- Stick figure sitting upright, side-view -->
+  <g transform="translate(512,512)" stroke="rgba(30,10,5,0.85)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="0" cy="-195" r="72" fill="rgba(30,10,5,0.85)" stroke="none"/>
+    <line x1="0" y1="-115" x2="0" y2="115" stroke-width="52"/>
+    <line x1="120" y1="115" x2="120" y2="-80" stroke-width="40"/>
+    <line x1="-100" y1="115" x2="140" y2="115" stroke-width="40"/>
+    <path d="M -18 -20 Q -80 60 -60 115" stroke-width="38"/>
+    <line x1="0" y1="115" x2="-130" y2="130" stroke-width="46"/>
+    <line x1="-130" y1="130" x2="-118" y2="260" stroke-width="42"/>
+    <line x1="-88" y1="115" x2="-96" y2="270" stroke-width="32"/>
+    <line x1="120" y1="115" x2="128" y2="270" stroke-width="32"/>
+  </g>
+</svg>
+
+<div class="sizes" id="previews"></div>
+
+<button onclick="exportPNG()">Export 1024×1024 PNG</button>
+
+<script>
+  const sizes = [256, 128, 64, 32, 16];
+  const container = document.getElementById('previews');
+  const master = document.getElementById('masterIcon');
+
+  sizes.forEach(size => {
+    const group = document.createElement('div');
+    group.className = 'size-group';
+
+    const wrap = document.createElement('div');
+    wrap.className = size <= 128 ? 'small-bg' : '';
+
+    // Clone the SVG and resize
+    const clone = master.cloneNode(true);
+    clone.removeAttribute('id');
+    clone.setAttribute('width', size);
+    clone.setAttribute('height', size);
+    wrap.appendChild(clone);
+
+    const label = document.createElement('div');
+    label.className = 'size-label';
+    label.textContent = size;
+
+    group.appendChild(wrap);
+    group.appendChild(label);
+    container.appendChild(group);
+  });
+
+  function exportPNG() {
+    const canvas = document.getElementById('exportCanvas');
+    const ctx = canvas.getContext('2d');
+    const clone = master.cloneNode(true);
+    clone.setAttribute('width', '1024');
+    clone.setAttribute('height', '1024');
+
+    const serializer = new XMLSerializer();
+    const svgStr = serializer.serializeToString(clone);
+    const svgBlob = new Blob([svgStr], { type: 'image/svg+xml;charset=utf-8' });
+    const url = URL.createObjectURL(svgBlob);
+
+    const img = new Image();
+    img.onload = function() {
+      ctx.clearRect(0, 0, 1024, 1024);
+      ctx.drawImage(img, 0, 0, 1024, 1024);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => {
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = 'PostureNudge-icon-1024.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      }, 'image/png');
+    };
+    img.src = url;
+  }
+</script>
+</body>
+</html>

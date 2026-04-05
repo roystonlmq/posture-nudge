@@ -1,0 +1,27 @@
+<svg id="masterIcon" viewBox="0 0 1024 1024" width="1024" height="1024" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="hsl(168, 80%, 45%)"/>
+      <stop offset="100%" stop-color="hsl(210, 85%, 55%)"/>
+    </linearGradient>
+    <radialGradient id="hl" cx="35%" cy="30%" r="55%">
+      <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+      <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+    </radialGradient>
+  </defs>
+  <!-- macOS squircle background -->
+  <rect width="1024" height="1024" rx="224" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="224" fill="url(#hl)"/>
+  <!-- Stick figure sitting upright, side-view -->
+  <g transform="translate(512,512)" stroke="rgba(30,10,5,0.85)" stroke-linecap="round" stroke-linejoin="round" fill="none">
+    <circle cx="0" cy="-195" r="72" fill="rgba(30,10,5,0.85)" stroke="none"/>
+    <line x1="0" y1="-115" x2="0" y2="115" stroke-width="52"/>
+    <line x1="120" y1="115" x2="120" y2="-80" stroke-width="40"/>
+    <line x1="-100" y1="115" x2="140" y2="115" stroke-width="40"/>
+    <path d="M -18 -20 Q -80 60 -60 115" stroke-width="38"/>
+    <line x1="0" y1="115" x2="-130" y2="130" stroke-width="46"/>
+    <line x1="-130" y1="130" x2="-118" y2="260" stroke-width="42"/>
+    <line x1="-88" y1="115" x2="-96" y2="270" stroke-width="32"/>
+    <line x1="120" y1="115" x2="128" y2="270" stroke-width="32"/>
+  </g>
+</svg>

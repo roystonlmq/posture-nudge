@@ -19,6 +19,7 @@ targets:
     deploymentTarget: "14.0"
     sources:
       - path: Sources/PostureNudge
+      - path: App/Assets.xcassets
     info:
       path: App/Info.plist
       properties:
@@ -34,6 +35,7 @@ targets:
         INFOPLIST_FILE: App/Info.plist
         ENABLE_HARDENED_RUNTIME: YES
         SWIFT_EMIT_LOC_STRINGS: YES
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
   PostureNudgeTests:
     type: bundle.unit-test
     platform: macOS
