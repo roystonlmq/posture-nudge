@@ -47,6 +47,17 @@ struct PostureNudgeApp: App {
                 settingsStore: settingsStore,
                 notificationManager: notificationManager
             )
+            .onAppear {
+                // Switch from accessory (menu bar only) to regular so the
+                // settings window becomes key and controls aren't greyed out
+                NSApp.setActivationPolicy(.regular)
+                NSApp.activate(ignoringOtherApps: true)
+                NSApp.windows.first { $0.title.contains("Settings") }?.makeKeyAndOrderFront(nil)
+            }
+            .onDisappear {
+                // Return to menu bar only mode when settings closes
+                NSApp.setActivationPolicy(.accessory)
+            }
         }
     }
 }
