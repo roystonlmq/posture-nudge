@@ -56,12 +56,14 @@ final class ReminderScheduler: ObservableObject {
         postureNextFire = nil
         if settings.postureEnabled {
             let interval = TimeInterval(settings.postureIntervalMinutes * 60)
+            postureNextFire = Date().addingTimeInterval(interval)
             postureTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.overlayManager.show(.posture)
+                    guard let self else { return }
+                    self.overlayManager.show(.posture)
+                    self.postureNextFire = Date().addingTimeInterval(interval)
                 }
             }
-            postureNextFire = Date().addingTimeInterval(interval)
         }
 
         // Blink
@@ -70,12 +72,14 @@ final class ReminderScheduler: ObservableObject {
         blinkNextFire = nil
         if settings.blinkEnabled {
             let interval = TimeInterval(settings.blinkIntervalMinutes * 60)
+            blinkNextFire = Date().addingTimeInterval(interval)
             blinkTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.overlayManager.show(.blink)
+                    guard let self else { return }
+                    self.overlayManager.show(.blink)
+                    self.blinkNextFire = Date().addingTimeInterval(interval)
                 }
             }
-            blinkNextFire = Date().addingTimeInterval(interval)
         }
 
         // Eye break
@@ -84,12 +88,14 @@ final class ReminderScheduler: ObservableObject {
         eyeBreakNextFire = nil
         if settings.eyeBreakEnabled {
             let interval = TimeInterval(settings.eyeBreakIntervalMinutes * 60)
+            eyeBreakNextFire = Date().addingTimeInterval(interval)
             eyeBreakTimer = Timer.scheduledTimer(withTimeInterval: interval, repeats: true) { [weak self] _ in
                 Task { @MainActor [weak self] in
-                    self?.overlayManager.show(.eyeBreak)
+                    guard let self else { return }
+                    self.overlayManager.show(.eyeBreak)
+                    self.eyeBreakNextFire = Date().addingTimeInterval(interval)
                 }
             }
-            eyeBreakNextFire = Date().addingTimeInterval(interval)
         }
     }
 }
