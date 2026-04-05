@@ -50,17 +50,29 @@ struct OverlayIconView: View {
 // Upright: head up, back straight and vertical.
 
 private struct PostureIcon: View {
-    @State private var progress: CGFloat = 0
+    @State private var showUpright = false
 
     var body: some View {
-        PostureFigure(progress: progress)
-            .fill(Color(white: 0.15))
-            .frame(width: 75, height: 75)
-            .onAppear {
-                withAnimation(.easeInOut(duration: 1.2).delay(0.3)) {
-                    progress = 1.0
+        ZStack {
+            // Slouched frame
+            PostureFigure(progress: 0)
+                .fill(Color(white: 0.15))
+                .opacity(showUpright ? 0 : 1)
+
+            // Upright frame
+            PostureFigure(progress: 1)
+                .fill(Color(white: 0.15))
+                .opacity(showUpright ? 1 : 0)
+        }
+        .frame(width: 75, height: 75)
+        .onAppear {
+            // Show slouched for 1.5s, then swap to upright
+            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                withAnimation(.easeInOut(duration: 0.3)) {
+                    showUpright = true
                 }
             }
+        }
     }
 }
 
