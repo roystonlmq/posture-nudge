@@ -2,18 +2,22 @@ import Foundation
 import CoreMediaIO
 import CoreAudio
 import CoreGraphics
+import AppKit
 
 @MainActor
 final class MeetingDetector: ObservableObject {
     @Published private(set) var isMeetingActive: Bool = false
     @Published private(set) var isUserIdle: Bool = false
+    @Published private(set) var isScreenLocked: Bool = false
     @Published private(set) var cameraInUse: Bool = false
     @Published private(set) var microphoneInUse: Bool = false
 
-    /// Either meeting or idle - the scheduler observes this
+    /// Meeting, idle, or screen locked - the scheduler observes this
     @Published private(set) var shouldPause: Bool = false
 
     private var pollTimer: Timer?
+    private var screenSleepObserver: NSObjectProtocol?
+    private var screenWakeObserver: NSObjectProtocol?
 
     // Meeting hysteresis
     private var meetingActiveCount: Int = 0
@@ -36,13 +40,17 @@ final class MeetingDetector: ObservableObject {
                 self?.poll()
             }
         }
+
+        registerScreenNotifications()
     }
 
     func stop() {
         pollTimer?.invalidate()
         pollTimer = nil
+        removeScreenNotifications()
         isMeetingActive = false
         isUserIdle = false
+        isScreenLocked = false
         shouldPause = false
         cameraInUse = false
         microphoneInUse = false
@@ -65,7 +73,11 @@ final class MeetingDetector: ObservableObject {
             isUserIdle = false
         }
 
-        shouldPause = isMeetingActive || isUserIdle
+        updateShouldPause()
+    }
+
+    private func updateShouldPause() {
+        shouldPause = isMeetingActive || isUserIdle || isScreenLocked
     }
 
     // MARK: - Meeting detection
@@ -106,6 +118,45 @@ final class MeetingDetector: ObservableObject {
         // User is idle if no keyboard, mouse movement, or clicks
         let minIdle = min(idleTime, idleKb, idleClick)
         isUserIdle = minIdle >= idleThresholdSeconds
+    }
+
+    // MARK: - Screen lock detection
+
+    private func registerScreenNotifications() {
+        guard screenSleepObserver == nil else { return }
+        let center = NSWorkspace.shared.notificationCenter
+
+        screenSleepObserver = center.addObserver(
+            forName: NSWorkspace.screensDidSleepNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.isScreenLocked = true
+                self?.updateShouldPause()
+            }
+        }
+
+        screenWakeObserver = center.addObserver(
+            forName: NSWorkspace.screensDidWakeNotification,
+            object: nil, queue: .main
+        ) { [weak self] _ in
+            Task { @MainActor [weak self] in
+                self?.isScreenLocked = false
+                self?.updateShouldPause()
+            }
+        }
+    }
+
+    private func removeScreenNotifications() {
+        let center = NSWorkspace.shared.notificationCenter
+        if let obs = screenSleepObserver {
+            center.removeObserver(obs)
+            screenSleepObserver = nil
+        }
+        if let obs = screenWakeObserver {
+            center.removeObserver(obs)
+            screenWakeObserver = nil
+        }
     }
 
     // MARK: - CoreMediaIO: camera detection

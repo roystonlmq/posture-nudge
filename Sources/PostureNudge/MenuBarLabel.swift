@@ -13,7 +13,10 @@ struct MenuBarLabel: View {
             Image(systemName: "figure.stand")
 
             if scheduler.isPausedForMeeting {
-                if meetingDetector.isMeetingActive {
+                if meetingDetector.isScreenLocked {
+                    Text("locked")
+                        .font(.caption2)
+                } else if meetingDetector.isMeetingActive {
                     Text("meeting")
                         .font(.caption2)
                 } else {

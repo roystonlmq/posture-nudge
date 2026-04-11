@@ -21,7 +21,13 @@ struct MenuBarView: View {
 
             if scheduler.isPausedForMeeting {
                 HStack(spacing: 6) {
-                    if meetingDetector.isMeetingActive {
+                    if meetingDetector.isScreenLocked {
+                        Image(systemName: "lock.display")
+                            .foregroundStyle(.orange)
+                        Text("Paused - screen locked")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
+                    } else if meetingDetector.isMeetingActive {
                         Image(systemName: "video.fill")
                             .foregroundStyle(.orange)
                         Text("Paused - in meeting")
@@ -103,6 +109,11 @@ struct MenuBarView: View {
                         .fill(meetingDetector.isUserIdle ? .green : .gray.opacity(0.3))
                         .frame(width: 6, height: 6)
                     Text("Idle")
+                        .font(.caption2)
+                    Circle()
+                        .fill(meetingDetector.isScreenLocked ? .green : .gray.opacity(0.3))
+                        .frame(width: 6, height: 6)
+                    Text("Lock")
                         .font(.caption2)
                 }
                 .foregroundStyle(.secondary)

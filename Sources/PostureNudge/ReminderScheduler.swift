@@ -73,14 +73,14 @@ final class ReminderScheduler: ObservableObject {
         meetingDetector.idleDetectionEnabled = settings.idleDetectionEnabled
         meetingDetector.idleThresholdSeconds = TimeInterval(settings.idleThresholdMinutes * 60)
 
-        let needsPolling = settings.meetingDetectionEnabled || settings.idleDetectionEnabled
-        if needsPolling {
-            meetingDetector.start()
-        } else {
-            meetingDetector.stop()
-            if isPausedForMeeting {
-                resumeTimers()
-            }
+        // Always start: screen lock detection needs to be active even when
+        // meeting/idle polling are disabled. The poll method gates on their
+        // respective enable flags, so the overhead is negligible.
+        meetingDetector.start()
+
+        if !settings.meetingDetectionEnabled && !settings.idleDetectionEnabled
+            && isPausedForMeeting && !meetingDetector.isScreenLocked {
+            resumeTimers()
         }
     }
 
