@@ -124,7 +124,16 @@ struct MenuBarView: View {
 
             HStack {
                 Button("Settings...") {
+                    NSApp.setActivationPolicy(.regular)
                     openSettings()
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                        NSApp.activate()
+                        if let w = NSApp.windows.first(where: {
+                            $0.isVisible && $0.canBecomeKey && !($0 is NSPanel)
+                        }) {
+                            w.makeKeyAndOrderFront(nil)
+                        }
+                    }
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
