@@ -1,11 +1,35 @@
 import SwiftUI
+import ServiceManagement
 
 struct SettingsView: View {
     @ObservedObject var settingsStore: SettingsStore
     @ObservedObject var notificationManager: NotificationManager
 
+    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+
     var body: some View {
         Form {
+            Section("General") {
+                Toggle("Launch at login", isOn: Binding(
+                    get: { launchAtLogin },
+                    set: { newValue in
+                        do {
+                            if newValue {
+                                try SMAppService.mainApp.register()
+                            } else {
+                                try SMAppService.mainApp.unregister()
+                            }
+                            launchAtLogin = newValue
+                        } catch {
+                            launchAtLogin = SMAppService.mainApp.status == .enabled
+                        }
+                    }
+                ))
+                Text("Automatically start PostureNudge when you log in.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
             if notificationManager.permissionDenied {
                 Section {
                     HStack(spacing: 10) {
@@ -84,6 +108,9 @@ struct SettingsView: View {
         .formStyle(.grouped)
         .frame(width: 420)
         .padding(.vertical, 8)
+        .onAppear {
+            launchAtLogin = SMAppService.mainApp.status == .enabled
+        }
         .safeAreaInset(edge: .bottom) {
             HStack(spacing: 4) {
                 Text("by")
