@@ -66,6 +66,12 @@ Both meeting and idle detection use hysteresis to avoid flapping (5s to enter pa
 - ServiceManagement (launch at login)
 - No third-party dependencies
 
+## Privacy
+
+PostureNudge runs entirely offline with no network calls, analytics, or telemetry. All settings are stored locally in UserDefaults.
+
+Meeting detection uses read-only system APIs (CoreMediaIO, CoreAudio) to check if any camera or microphone is actively streaming. The app cannot access audio/video content, only whether a device is in use.
+
 ## License
 
 MIT
