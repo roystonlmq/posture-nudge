@@ -49,10 +49,18 @@ struct PostureNudgeApp: App {
             )
             .onAppear {
                 // Switch from accessory (menu bar only) to regular so the
-                // settings window becomes key and controls aren't greyed out
+                // settings window becomes key and controls aren't greyed out.
+                // The short delay lets the window system process the policy
+                // change before we attempt activation.
                 NSApp.setActivationPolicy(.regular)
-                NSApp.activate(ignoringOtherApps: true)
-                NSApp.windows.first { $0.title.contains("Settings") }?.makeKeyAndOrderFront(nil)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
+                    NSApp.activate()
+                    if let settingsWindow = NSApp.windows.first(where: {
+                        $0.isVisible && $0.canBecomeKey && !($0 is NSPanel)
+                    }) {
+                        settingsWindow.makeKeyAndOrderFront(nil)
+                    }
+                }
             }
             .onDisappear {
                 // Return to menu bar only mode when settings closes
