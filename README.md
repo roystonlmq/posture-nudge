@@ -9,6 +9,8 @@ A simple macOS menu bar app that reminds you to check your posture, blink, and t
 - **20-20-20 eye break** - full-screen overlay with countdown timer. Look 20 feet away for 20 seconds. Skip button to dismiss early
 - **Meeting detection** - auto-pauses all reminders when your camera or microphone is in use (Zoom, Meet, Teams, etc.). No permissions needed
 - **Idle detection** - pauses reminders when you step away from your computer
+- **Screen lock detection** - automatically pauses reminders when your display sleeps or you lock your screen
+- **Launch at login** - optional toggle in Settings to start PostureNudge automatically when you log in
 - **Multi-monitor** - overlays appear centered on all connected displays
 - **Configurable** - set interval for each reminder independently (1-120 min)
 - **Menu bar only** - no dock icon, lives quietly in your menu bar
@@ -50,6 +52,8 @@ open PostureNudge.xcodeproj
 - **Eye Break**: Full-screen dimmed overlay blocks your screen with a 20-second countdown. Press "Skip Break" to dismiss early.
 - **Meeting Detection**: Uses CoreMediaIO and CoreAudio APIs to check if any camera or microphone is actively streaming. No camera/mic permission needed - these are read-only system queries.
 - **Idle Detection**: Uses `CGEventSource.secondsSinceLastEventType` to check time since last keyboard/mouse input.
+- **Screen Lock Detection**: Observes `NSWorkspace.screensDidSleepNotification` / `screensDidWakeNotification` to pause and resume when the display sleeps or wakes.
+- **Launch at Login**: Uses `SMAppService.mainApp` from the ServiceManagement framework. No helper app needed.
 
 Both meeting and idle detection use hysteresis to avoid flapping (5s to enter pause, 10s to exit).
 
@@ -59,6 +63,7 @@ Both meeting and idle detection use hysteresis to avoid flapping (5s to enter pa
 - CoreMediaIO (camera detection)
 - CoreAudio (microphone detection)
 - CoreGraphics (idle detection)
+- ServiceManagement (launch at login)
 - No third-party dependencies
 
 ## License
