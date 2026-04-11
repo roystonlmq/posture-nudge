@@ -177,8 +177,10 @@ final class MeetingDetectorTests: XCTestCase {
     func testInitialState() {
         let detector = MeetingDetector()
         XCTAssertFalse(detector.isMeetingActive)
+        XCTAssertFalse(detector.isScreenLocked)
         XCTAssertFalse(detector.cameraInUse)
         XCTAssertFalse(detector.microphoneInUse)
+        XCTAssertFalse(detector.shouldPause)
     }
 
     @MainActor
@@ -187,6 +189,65 @@ final class MeetingDetectorTests: XCTestCase {
         detector.start()
         detector.stop()
         XCTAssertFalse(detector.isMeetingActive)
+        XCTAssertFalse(detector.isScreenLocked)
+        XCTAssertFalse(detector.shouldPause)
+    }
+
+    @MainActor
+    func testScreenLockPausesByNotification() {
+        let detector = MeetingDetector()
+        detector.start()
+
+        // Simulate screen sleep notification
+        NSWorkspace.shared.notificationCenter.post(
+            name: NSWorkspace.screensDidSleepNotification, object: nil
+        )
+
+        // Notification is dispatched via Task on main actor, so we need a tick
+        let sleepExp = self.expectation(description: "screen lock processed")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            sleepExp.fulfill()
+        }
+        wait(for: [sleepExp], timeout: 1.0)
+
+        XCTAssertTrue(detector.isScreenLocked)
+        XCTAssertTrue(detector.shouldPause)
+
+        // Simulate screen wake notification
+        NSWorkspace.shared.notificationCenter.post(
+            name: NSWorkspace.screensDidWakeNotification, object: nil
+        )
+
+        let wakeExp = self.expectation(description: "screen wake processed")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            wakeExp.fulfill()
+        }
+        wait(for: [wakeExp], timeout: 1.0)
+
+        XCTAssertFalse(detector.isScreenLocked)
+        XCTAssertFalse(detector.shouldPause)
+
+        detector.stop()
+    }
+
+    @MainActor
+    func testStopRemovesScreenNotifications() {
+        let detector = MeetingDetector()
+        detector.start()
+        detector.stop()
+
+        // Post sleep notification after stop - should have no effect
+        NSWorkspace.shared.notificationCenter.post(
+            name: NSWorkspace.screensDidSleepNotification, object: nil
+        )
+
+        let exp = self.expectation(description: "notification ignored")
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
+            exp.fulfill()
+        }
+        wait(for: [exp], timeout: 1.0)
+
+        XCTAssertFalse(detector.isScreenLocked)
     }
 }
 
