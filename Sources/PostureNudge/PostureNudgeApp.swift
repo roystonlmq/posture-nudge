@@ -9,6 +9,11 @@ struct PostureNudgeApp: App {
     private let meetingDetector: MeetingDetector
     private let scheduler: ReminderScheduler
 
+    /// Shared state so MenuBarView can open the settings window.
+    static var shared: PostureNudgeApp?
+    private static var settingsWindow: NSWindow?
+    private static var closeObserver: NSObjectProtocol?
+
     init() {
         let store = SettingsStore()
         let notifications = NotificationManager()
@@ -26,6 +31,7 @@ struct PostureNudgeApp: App {
         self.scheduler = sched
 
         NSWindow.allowsAutomaticWindowTabbing = false
+        PostureNudgeApp.shared = self
     }
 
     var body: some Scene {
@@ -41,31 +47,50 @@ struct PostureNudgeApp: App {
             MenuBarLabel(scheduler: scheduler, meetingDetector: meetingDetector)
         }
         .menuBarExtraStyle(.window)
+    }
 
-        Settings {
-            SettingsView(
-                settingsStore: settingsStore,
-                notificationManager: notificationManager
-            )
-            .onAppear {
-                // Switch from accessory (menu bar only) to regular so the
-                // settings window becomes key and controls aren't greyed out.
-                // The short delay lets the window system process the policy
-                // change before we attempt activation.
-                NSApp.setActivationPolicy(.regular)
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                    NSApp.activate()
-                    if let settingsWindow = NSApp.windows.first(where: {
-                        $0.isVisible && $0.canBecomeKey && !($0 is NSPanel)
-                    }) {
-                        settingsWindow.makeKeyAndOrderFront(nil)
-                    }
-                }
-            }
-            .onDisappear {
-                // Return to menu bar only mode when settings closes
-                NSApp.setActivationPolicy(.accessory)
-            }
+    /// Opens the settings window, creating it if needed.
+    func showSettings() {
+        if let existing = Self.settingsWindow, existing.isVisible {
+            NSApp.setActivationPolicy(.regular)
+            existing.orderFrontRegardless()
+            existing.makeKey()
+            NSApp.activate()
+            return
         }
+
+        let view = SettingsView(
+            settingsStore: settingsStore,
+            notificationManager: notificationManager
+        )
+        let scrollView = NSHostingController(rootView:
+            ScrollView {
+                view
+            }
+            .frame(width: 420, height: 500)
+        )
+        let window = NSWindow(contentViewController: scrollView)
+        window.title = "PostureNudge Settings"
+        window.styleMask = [.titled, .closable]
+        window.isReleasedWhenClosed = false
+        window.setContentSize(NSSize(width: 420, height: 500))
+        window.center()
+
+        Self.settingsWindow = window
+
+        // Clean up when the window actually closes
+        if let old = Self.closeObserver {
+            NotificationCenter.default.removeObserver(old)
+        }
+        Self.closeObserver = NotificationCenter.default.addObserver(
+            forName: NSWindow.willCloseNotification,
+            object: window, queue: .main
+        ) { _ in
+            NSApp.setActivationPolicy(.accessory)
+        }
+
+        NSApp.setActivationPolicy(.regular)
+        window.makeKeyAndOrderFront(nil)
+        NSApp.activate()
     }
 }

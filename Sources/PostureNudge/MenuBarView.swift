@@ -6,8 +6,6 @@ struct MenuBarView: View {
     @ObservedObject var notificationManager: NotificationManager
     var overlayManager: OverlayManager
     @ObservedObject var meetingDetector: MeetingDetector
-    @Environment(\.openSettings) private var openSettings
-
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             // Header
@@ -124,16 +122,7 @@ struct MenuBarView: View {
 
             HStack {
                 Button("Settings...") {
-                    NSApp.setActivationPolicy(.regular)
-                    openSettings()
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {
-                        NSApp.activate()
-                        if let w = NSApp.windows.first(where: {
-                            $0.isVisible && $0.canBecomeKey && !($0 is NSPanel)
-                        }) {
-                            w.makeKeyAndOrderFront(nil)
-                        }
-                    }
+                    PostureNudgeApp.shared?.showSettings()
                 }
                 .buttonStyle(.plain)
                 .foregroundStyle(Color.accentColor)
